@@ -24,6 +24,14 @@ app.use(express.urlencoded({
 }));
 app.use('/', usersRouter);
 
+app.use((req, res, next) => {
+  req.user = {
+    _id: ''
+  };
+
+  next();
+});
+
 
 app.listen(PORT, () => {
   // Если всё работает, консоль покажет, какой порт слушает приложение.
