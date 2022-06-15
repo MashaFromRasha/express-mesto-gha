@@ -1,15 +1,13 @@
-// Создание express router
 /* eslint-disable no-undef */
+//Создание express router
 const router = require("express").Router();
+const {getUsers, getUserById, createUser} = require('../controllers/users');
 
-// Экспорт
+
+router.get('/users', getUsers);
+router.get('/users/:id', getUserById);
+router.post('/users', createUser);
+
+
+//Экспорт
 module.exports = router;
-
-const users = require("./users.js");
-
-router.get("/users/:id", (req, res) => {
-  if(!users[req.res.params]) {
-    res.send({error: 'Такого пользователя не существует'});
-  }
-   res.send(users[req.params.id]);
-});
