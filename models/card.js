@@ -1,7 +1,5 @@
-// eslint-disable-next-line no-undef
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
-// Описание схемы карточки:
 const cardSchema = new mongoose.Schema({
   name: {
     type: String,
@@ -33,5 +31,4 @@ const cardSchema = new mongoose.Schema({
   },
 });
 
-// eslint-disable-next-line no-undef
 module.exports = mongoose.model('card', cardSchema);

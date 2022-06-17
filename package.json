@@ -21,6 +21,7 @@
   "homepage": "https://github.com/MashaFromRasha/express-mesto-gha#readme",
   "dependencies": {
     "express": "^4.18.1",
+    "helmet": "^5.1.0",
     "mongoose": "^6.3.8"
   },
   "devDependencies": {
