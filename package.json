@@ -6,14 +6,14 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "lint": "npx eslint."
+    "lint": "npx eslint ."
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/MashaFromRasha/express-mesto-gha.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Мария Мурочкина",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/MashaFromRasha/express-mesto-gha/issues"
