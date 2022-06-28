@@ -8,14 +8,14 @@ const BadRequestError = require('../errors/BadRequestError');
 const ConflictError = require('../errors/ConflictError');
 const { JWT_SECRET } = require('../utils/secretKey');
 
-const getUsers = (req, res) => User.find({})
-  .then((users) => res.status(200).send(users))
-  .catch(() => res.status(500).send({ message: 'Ошибка сервера.' }));
+const getUsers = (req, res, next) => User.find({})
+  .then((users) => res.send(users))
+  .catch(next);
 
 const getCurrentUser = (req, res, next) => {
   User.findById(req.user._id)
     .orFail(new Error('NotFound'))
-    .then((user) => res.status(200).send(user))
+    .then((user) => res.send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
         next(new BadRequestError('Ошибка при запросе.'));
