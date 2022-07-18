@@ -1,52 +1,82 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
-const helmet = require('helmet');
-const { errors } = require('celebrate');
-const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
+const { celebrate, Joi, errors } = require('celebrate');
 
-const cardsRouter = require('./routes/cards');
-const usersRouter = require('./routes/users');
+const userRouter = require('./routes/users');
+const cardRouter = require('./routes/cards');
+const { login, createUser } = require('./controllers/user');
+const cors = require('./middlewares/cors');
 const auth = require('./middlewares/auth');
-const errorHandler = require('./middlewares/errorHandler');
-const { createUser, login } = require('./controllers/users');
-
-require('dotenv').config();
+const NotFound = require('./utils/errors/not-found');
+const validateURL = require('./utils/validateURL/validateURL');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 const { PORT = 3000 } = process.env;
+
 const app = express();
-const { validateSignUp, validateSignIn } = require('./middlewares/validation');
-const NotFoundError = require('./errors/NotFoundError');
+
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+app.use(cors);
+
+app.use(requestLogger);
+
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт!');
+  }, 0);
+});
+
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), login);
+
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().custom(validateURL),
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    email: Joi.string().required().email(),
+    password: Joi.string().required(),
+  }),
+}), createUser);
+
+app.use('/cards', auth, cardRouter);
+app.use('/users', auth, userRouter);
+
+app.use(errorLogger);
+
+app.use(auth, (req, res, next) => next(new NotFound('Такая страница не найдена!')));
+
+app.use(errors());
+
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
+  const { statusCode = 500, message } = err;
+
+  res
+    .status(statusCode)
+    .send({
+      message: statusCode === 500
+        ? 'На сервере произошла ошибка!'
+        : message,
+    });
+});
 
 mongoose.connect('mongodb://localhost:27017/mestodb', {
   useUnifiedTopology: true,
   useNewUrlParser: true,
-});
+})
 
-app.use(helmet());
-app.use(express.json());
-app.use(
-  express.urlencoded({
-    extended: true,
-  }),
-);
-app.use(cookieParser());
-
-app.post('/signin', validateSignIn, login);
-app.post('/signup', validateSignUp, createUser);
-
-app.use(auth);
-
-app.use('/users', usersRouter);
-app.use('/cards', cardsRouter);
-
-app.use('*', (req, res, next) => {
-  next(new NotFoundError('Запрашиваемый ресурс не найден.'));
-});
-
-app.use(errors());
-app.use(errorHandler);
-
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`App listening on port ${PORT}`);
-});
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`App started on ${PORT} port`);
+    });
+  })
+  .catch((e) => console.log(e));

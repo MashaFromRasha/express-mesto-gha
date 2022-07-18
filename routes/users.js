@@ -1,23 +1,35 @@
-const router = require('express').Router();
-
+const { celebrate, Joi } = require('celebrate');
+const userRouter = require('express').Router();
 const {
-  getUsers,
-  getUserById,
-  updateAvatar,
   updateProfile,
-  getCurrentUser,
-} = require('../controllers/users');
+  updateAvatar,
+  getUserProfile,
+  getUsers,
+  getUsersById,
+} = require('../controllers/user');
+const validateURL = require('../utils/validateURL/validateURL');
 
-const {
-  validateUserId,
-  validateUpdateProfile,
-  validateUpdateAvatar,
-} = require('../middlewares/validation');
+userRouter.get('/', getUsers);
 
-router.get('/', getUsers);
-router.get('/me', getCurrentUser);
-router.get('/:userId', validateUserId, getUserById);
-router.patch('/me', validateUpdateProfile, updateProfile);
-router.patch('/me/avatar', validateUpdateAvatar, updateAvatar);
+userRouter.get('/me', getUserProfile);
 
-module.exports = router;
+userRouter.get('/:userId', celebrate({
+  params: Joi.object().keys({
+    userId: Joi.string().hex().length(24),
+  }),
+}), getUsersById);
+
+userRouter.patch('/me', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().required().min(2).max(20),
+    about: Joi.string().required().min(2).max(20),
+  }),
+}), updateProfile);
+
+userRouter.patch('/me/avatar', celebrate({
+  body: Joi.object().keys({
+    avatar: Joi.string().required().custom(validateURL),
+  }),
+}), updateAvatar);
+
+module.exports = userRouter;
