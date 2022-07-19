@@ -12,7 +12,6 @@ module.exports.getCards = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
-
   Card.findById(cardId)
     .then((card) => {
       if (!card) {
@@ -27,13 +26,16 @@ module.exports.deleteCard = (req, res, next) => {
               res.send({ message: 'Карточка удалена' });
             })
             .catch((err) => {
-              if (err.name === 'CastError') {
-                next(new BadRequest('Переданы некорректные данные'));
-              } else {
-                next(err);
-              }
+              next(err);
             });
         }
+      }
+    })
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new BadRequest('Переданы некорректные данные'));
+      } else {
+        next(err);
       }
     });
 };
